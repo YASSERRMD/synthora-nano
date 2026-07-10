@@ -17,4 +17,12 @@ describe("App", () => {
       expect(screen.getByText("404")).toBeInTheDocument();
     });
   });
+
+  it("has proper heading hierarchy on onboarding", async () => {
+    renderWithProviders(<App />);
+    await waitFor(() => {
+      const h1 = screen.getByRole("heading", { level: 1 });
+      expect(h1).toBeInTheDocument();
+    });
+  });
 });

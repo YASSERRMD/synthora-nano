@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
+import { LoadingState } from "./components/LoadingState";
 
 const OnboardingPage = lazy(
   () => import("./features/onboarding/OnboardingPage"),
@@ -17,24 +18,9 @@ const ActivityPage = lazy(() => import("./features/library/ActivityPage"));
 const SettingsPage = lazy(() => import("./features/settings/SettingsPage"));
 const NotFoundPage = lazy(() => import("./app/NotFoundPage"));
 
-function AppSpinner() {
-  return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "100vh",
-      }}
-    >
-      Loading...
-    </div>
-  );
-}
-
 function App() {
   return (
-    <Suspense fallback={<AppSpinner />}>
+    <Suspense fallback={<LoadingState />}>
       <Routes>
         <Route path="/" element={<OnboardingPage />} />
         <Route path="/onboarding" element={<OnboardingPage />} />

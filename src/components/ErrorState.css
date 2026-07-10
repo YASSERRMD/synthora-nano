@@ -1,0 +1,46 @@
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-12) var(--space-8);
+  text-align: center;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.error-state__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-xl);
+  background: rgba(181, 61, 61, 0.1);
+  color: var(--status-error);
+  margin-bottom: var(--space-4);
+}
+
+.error-state__icon svg {
+  width: 32px;
+  height: 32px;
+}
+
+.error-state__title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.error-state__message {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+  margin-bottom: var(--space-4);
+}
+
+.error-state__actions {
+  display: flex;
+  gap: var(--space-3);
+}

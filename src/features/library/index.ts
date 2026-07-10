@@ -5,6 +5,12 @@ export type {
 } from "./library-service";
 export { libraryService } from "./library-service";
 
+export type { BatchOperation, BatchResult } from "./batch-service";
+export { batchService } from "./batch-service";
+
+export { storageService } from "./storage-service";
+export type { StorageEstimate } from "./storage-service";
+
 export type {
   IngestionStatus,
   IngestionProgress,

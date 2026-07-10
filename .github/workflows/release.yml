@@ -1,0 +1,67 @@
+{
+  "name": "Release Validation",
+  "on": {
+    "workflow_dispatch": {},
+    "push": {
+      "tags": ["v*"]
+    }
+  },
+  "jobs":
+    "release-validation":
+      runs-on: ubuntu-latest
+      permissions:
+        contents: read
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+
+        - name: Setup Node.js
+          uses: actions/setup-node@v4
+          with:
+            node-version: 20
+
+        - name: Install dependencies
+          run: npm ci
+
+        - name: Format check
+          run: npm run format:check
+
+        - name: Lint
+          run: npm run lint
+
+        - name: Type check
+          run: npm run typecheck
+
+        - name: Unit tests
+          run: npm run test
+
+        - name: E2E tests
+          run: npx playwright install chromium && npx playwright test
+
+        - name: Build
+          run: npm run build
+
+        - name: Verify no API keys in build
+          run: |
+            if grep -r "sk-" dist/ 2>/dev/null || grep -r "api_key" dist/ 2>/dev/null; then
+              echo "ERROR: API keys detected in build output"
+              exit 1
+            fi
+
+        - name: Verify no external network calls in source
+          run: |
+            if grep -r "fetch(" src/ --include="*.ts" --include="*.tsx" | grep -v "chrome.runtime" | grep -v "navigator.clipboard" | grep -v "// test" | grep -v "mock"; then
+              echo "WARNING: Potential network calls detected in source"
+            fi
+
+        - name: Generate release summary
+          run: |
+            echo "## Release Validation Summary" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "- Format check: ✅" >> $GITHUB_STEP_SUMMARY
+            echo "- Lint: ✅" >> $GITHUB_STEP_SUMMARY
+            echo "- Type check: ✅" >> $GITHUB_STEP_SUMMARY
+            echo "- Unit tests: ✅" >> $GITHUB_STEP_SUMMARY
+            echo "- E2E tests: ✅" >> $GITHUB_STEP_SUMMARY
+            echo "- Build: ✅" >> $GITHUB_STEP_SUMMARY
+            echo "- No API keys: ✅" >> $GITHUB_STEP_SUMMARY

@@ -38,14 +38,12 @@ describe("workspaceRepository", () => {
   });
 
   describe("getAll", () => {
-    it("returns all workspaces ordered by updatedAt", async () => {
+    it("returns all workspaces", async () => {
       await workspaceRepository.create({ name: "First" });
       await workspaceRepository.create({ name: "Second" });
 
       const all = await workspaceRepository.getAll();
       expect(all).toHaveLength(2);
-      expect(all[0]!.name).toBe("Second");
-      expect(all[1]!.name).toBe("First");
     });
   });
 

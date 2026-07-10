@@ -1,9 +1,26 @@
 import { render } from "@testing-library/react";
 import { StrictMode } from "react";
 import type { ReactNode } from "react";
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter, MemoryRouter } from "react-router-dom";
 
-export function renderWithProviders(ui: ReactNode) {
+interface RenderOptions {
+  route?: string;
+}
+
+export function renderWithProviders(
+  ui: ReactNode,
+  options: RenderOptions = {},
+) {
+  const { route = "/" } = options;
+
+  return render(
+    <StrictMode>
+      <MemoryRouter initialEntries={[route]}>{ui}</MemoryRouter>
+    </StrictMode>,
+  );
+}
+
+export function renderWithRouter(ui: ReactNode) {
   return render(
     <StrictMode>
       <BrowserRouter>{ui}</BrowserRouter>

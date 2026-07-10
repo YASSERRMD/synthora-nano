@@ -1,4 +1,7 @@
 let registration: ServiceWorkerRegistration | null = null;
+let updateAvailableCallback: (() => void) | null = null;
+
+const SW_MIGRATION_KEY = "synthora-sw-migration";
 
 export async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   if (!("serviceWorker" in navigator)) {
@@ -29,8 +32,6 @@ export async function unregisterServiceWorker(): Promise<boolean> {
   }
 }
 
-let updateAvailableCallback: (() => void) | null = null;
-
 export function onUpdateAvailable(callback: () => void): void {
   updateAvailableCallback = callback;
 }
@@ -57,4 +58,37 @@ export async function applyUpdate(): Promise<void> {
   if (!registration?.waiting) return;
   registration.waiting.postMessage("skipWaiting");
   window.location.reload();
+}
+
+export function getMigrationVersion(): number {
+  try {
+    return parseInt(localStorage.getItem(SW_MIGRATION_KEY) ?? "0", 10);
+  } catch {
+    return 0;
+  }
+}
+
+export function setMigrationVersion(version: number): void {
+  try {
+    localStorage.setItem(SW_MIGRATION_KEY, String(version));
+  } catch {
+    // ignore
+  }
+}
+
+export async function safeMigrate(
+  newVersion: number,
+  migrationFn: (oldVersion: number) => Promise<void>,
+): Promise<boolean> {
+  const currentVersion = getMigrationVersion();
+  if (currentVersion >= newVersion) return false;
+
+  try {
+    await migrationFn(currentVersion);
+    setMigrationVersion(newVersion);
+    return true;
+  } catch (error) {
+    console.error("Migration failed:", error);
+    return false;
+  }
 }

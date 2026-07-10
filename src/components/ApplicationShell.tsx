@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { ShellProvider } from "./ShellContext";
+import { ShellProvider } from "./ShellProvider";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import "./ApplicationShell.css";

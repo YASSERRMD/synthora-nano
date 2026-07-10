@@ -1,5 +1,4 @@
-import { useState, useCallback, createContext, useContext } from "react";
-import type { ReactNode } from "react";
+import { createContext, useContext } from "react";
 
 interface ShellContextValue {
   isSidebarOpen: boolean;
@@ -7,7 +6,7 @@ interface ShellContextValue {
   closeSidebar: () => void;
 }
 
-const ShellContext = createContext<ShellContextValue | null>(null);
+export const ShellContext = createContext<ShellContextValue | null>(null);
 
 export function useShell() {
   const context = useContext(ShellContext);
@@ -15,24 +14,4 @@ export function useShell() {
     throw new Error("useShell must be used within a ShellProvider");
   }
   return context;
-}
-
-export function ShellProvider({ children }: { children: ReactNode }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
-  const toggleSidebar = useCallback(() => {
-    setIsSidebarOpen((prev) => !prev);
-  }, []);
-
-  const closeSidebar = useCallback(() => {
-    setIsSidebarOpen(false);
-  }, []);
-
-  return (
-    <ShellContext.Provider
-      value={{ isSidebarOpen, toggleSidebar, closeSidebar }}
-    >
-      {children}
-    </ShellContext.Provider>
-  );
 }

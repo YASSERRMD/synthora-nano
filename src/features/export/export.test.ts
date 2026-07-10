@@ -154,12 +154,40 @@ describe("validateSnapshot", () => {
 
   it("rejects missing workspace", async () => {
     const result = await validateSnapshot({
-      meta: { version: "1", checksum: "x", exportedAt: "" },
+      meta: {
+        version: "1",
+        checksum: "x",
+        exportedAt: new Date().toISOString(),
+      },
       papers: [],
       notes: [],
     });
     expect(result.valid).toBe(false);
     expect(result.errors).toContain("Missing workspace section");
+  });
+
+  it("rejects malformed strings", async () => {
+    const result = await validateSnapshot("not a snapshot");
+    expect(result.valid).toBe(false);
+  });
+
+  it("rejects empty object", async () => {
+    const result = await validateSnapshot({});
+    expect(result.valid).toBe(false);
+  });
+
+  it("validates large snapshot structure", async () => {
+    const result = await validateSnapshot({
+      meta: {
+        version: "1",
+        checksum: "x",
+        exportedAt: new Date().toISOString(),
+      },
+      workspace: { id: "ws-1", name: "Test", createdAt: "", updatedAt: "" },
+      papers: [],
+      notes: [],
+    });
+    expect(result.valid).toBe(true);
   });
 });
 

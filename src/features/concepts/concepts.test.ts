@@ -6,6 +6,8 @@ import {
 } from "./concept-extraction";
 import { conceptConfirmationService } from "./confirmation-service";
 import { conceptGraphService } from "./graph-service";
+import { backlinkService } from "./backlink-service";
+import { listViewService } from "./list-view-service";
 import type { PaperAnalysis } from "../../db/schemas";
 import type { Concept } from "../../db/schemas";
 
@@ -20,6 +22,7 @@ vi.mock("../../db/repositories/concept.repository", () => ({
     merge: vi.fn(),
     delete: vi.fn(),
     search: vi.fn(),
+    getByPaperId: vi.fn(),
     linkPaper: vi.fn(),
     unlinkPaper: vi.fn(),
     linkNote: vi.fn(),
@@ -208,5 +211,98 @@ describe("conceptGraphService", () => {
     );
     expect(related).toHaveLength(1);
     expect(related[0]?.id).toBe("concept-2");
+  });
+});
+
+describe("backlinkService", () => {
+  it("finds related papers via shared concepts", async () => {
+    const conceptWithMultiplePapers = {
+      ...mockConcept,
+      linkedPaperIds: ["paper-1", "paper-2", "paper-3"],
+    };
+    vi.mocked(conceptRepository.getByPaperId).mockResolvedValue([
+      conceptWithMultiplePapers,
+    ]);
+    const related = await backlinkService.findRelatedPapers("paper-1");
+    expect(related).toContain("paper-2");
+    expect(related).toContain("paper-3");
+    expect(related).not.toContain("paper-1");
+  });
+
+  it("gets concept connections", async () => {
+    vi.mocked(conceptRepository.getById).mockResolvedValue(mockConcept);
+    vi.mocked(conceptRepository.getByWorkspaceId).mockResolvedValue([
+      mockConcept,
+    ]);
+    const connections =
+      await backlinkService.getConceptConnections("concept-1");
+    expect(connections.papers).toBeDefined();
+    expect(connections.notes).toBeDefined();
+  });
+});
+
+describe("listViewService", () => {
+  it("focuses on a node with depth", () => {
+    const graph = {
+      nodes: [
+        { id: "a", label: "A", type: "concept" as const, confirmed: true },
+        { id: "b", label: "B", type: "concept" as const, confirmed: true },
+        { id: "c", label: "C", type: "concept" as const, confirmed: false },
+      ],
+      edges: [
+        { source: "a", target: "b", relationship: "co-occurs" as const },
+        { source: "b", target: "c", relationship: "co-occurs" as const },
+      ],
+    };
+
+    const focused = listViewService.focusMode(graph, "a", 1);
+    expect(focused.nodes.map((n) => n.id)).toContain("a");
+    expect(focused.nodes.map((n) => n.id)).toContain("b");
+    expect(focused.nodes.map((n) => n.id)).not.toContain("c");
+  });
+
+  it("filters nodes by confirmed status", () => {
+    const nodes = [
+      {
+        id: "a",
+        label: "A",
+        type: "concept" as const,
+        confirmed: true,
+        connections: 2,
+      },
+      {
+        id: "b",
+        label: "B",
+        type: "concept" as const,
+        confirmed: false,
+        connections: 1,
+      },
+    ];
+    const filtered = listViewService.filterNodes(nodes, {
+      confirmedOnly: true,
+    });
+    expect(filtered).toHaveLength(1);
+    expect(filtered[0]?.id).toBe("a");
+  });
+
+  it("sorts nodes by connections", () => {
+    const nodes = [
+      {
+        id: "a",
+        label: "A",
+        type: "concept" as const,
+        confirmed: true,
+        connections: 1,
+      },
+      {
+        id: "b",
+        label: "B",
+        type: "concept" as const,
+        confirmed: true,
+        connections: 5,
+      },
+    ];
+    const sorted = listViewService.sortNodesByConnections(nodes);
+    expect(sorted[0]?.id).toBe("b");
   });
 });

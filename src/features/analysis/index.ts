@@ -44,3 +44,7 @@ export {
 } from "./progress";
 
 export type { AnalysisProgress, AnalysisProgressStage } from "./progress";
+
+export { attemptRecovery } from "./recovery";
+
+export type { RecoveryResult } from "./recovery";

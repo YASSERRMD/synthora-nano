@@ -17,28 +17,29 @@ import {
   getUserMessage,
 } from "../types/errors";
 
-class ConcreteTestError extends AppError {
-  readonly code = "TEST_ERROR";
-  readonly userMessage = "Test error message.";
-}
-
 describe("AppError", () => {
   it("creates an error with correct properties", () => {
-    const error = new ConcreteTestError("test detail");
+    const error = new AppError("test detail", {
+      code: "TEST_ERROR",
+      userMessage: "Test error message.",
+    });
     expect(error.code).toBe("TEST_ERROR");
     expect(error.message).toBe("test detail");
     expect(error.userMessage).toBe("Test error message.");
-    expect(error.name).toBe("ConcreteTestError");
+    expect(error.name).toBe("AppError");
   });
 
   it("serializes to JSON", () => {
-    const error = new ConcreteTestError("test detail");
+    const error = new AppError("test detail", {
+      code: "TEST_ERROR",
+      userMessage: "Test error message.",
+    });
     const json = error.toJSON();
     expect(json).toEqual({
       code: "TEST_ERROR",
       message: "test detail",
       userMessage: "Test error message.",
-      name: "ConcreteTestError",
+      name: "AppError",
     });
   });
 });

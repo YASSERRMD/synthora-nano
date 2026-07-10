@@ -37,4 +37,12 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    extends: [js.configs.recommended, ...tseslint.configs.recommended],
+    files: ["e2e/**/*.ts", "playwright.config.ts"],
+    languageOptions: {
+      ecmaVersion: 2023,
+      globals: globals.node,
+    },
+  },
 );

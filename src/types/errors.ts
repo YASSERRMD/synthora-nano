@@ -1,10 +1,15 @@
-export abstract class AppError extends Error {
-  abstract readonly code: string;
-  abstract readonly userMessage: string;
+export class AppError extends Error {
+  readonly code: string;
+  readonly userMessage: string;
 
-  constructor(message: string, options?: ErrorOptions) {
+  constructor(
+    message: string,
+    options?: ErrorOptions & { code: string; userMessage: string },
+  ) {
     super(message, options);
     this.name = this.constructor.name;
+    this.code = options?.code ?? "UNKNOWN_ERROR";
+    this.userMessage = options?.userMessage ?? "An unexpected error occurred.";
   }
 
   toJSON(): SerializedError {
@@ -25,112 +30,120 @@ export interface SerializedError {
 }
 
 export class NotFoundError extends AppError {
-  readonly code = "NOT_FOUND";
-  readonly userMessage = "The requested resource was not found.";
-
   constructor(resource: string) {
-    super(`${resource} not found`);
+    super(`${resource} not found`, {
+      code: "NOT_FOUND",
+      userMessage: "The requested resource was not found.",
+    });
   }
 }
 
 export class ValidationError extends AppError {
-  readonly code = "VALIDATION_ERROR";
-  readonly userMessage = "The provided data is invalid.";
-
   constructor(message: string) {
-    super(message);
+    super(message, {
+      code: "VALIDATION_ERROR",
+      userMessage: "The provided data is invalid.",
+    });
   }
 }
 
 export class DatabaseError extends AppError {
-  readonly code = "DATABASE_ERROR";
-  readonly userMessage =
-    "A storage error occurred. Your data may not have been saved.";
-
   constructor(message: string, options?: ErrorOptions) {
-    super(message, options);
+    super(message, {
+      ...options,
+      code: "DATABASE_ERROR",
+      userMessage:
+        "A storage error occurred. Your data may not have been saved.",
+    });
   }
 }
 
 export class ParseError extends AppError {
-  readonly code = "PARSE_ERROR";
-  readonly userMessage = "The document could not be parsed.";
-
   constructor(message: string, options?: ErrorOptions) {
-    super(message, options);
+    super(message, {
+      ...options,
+      code: "PARSE_ERROR",
+      userMessage: "The document could not be parsed.",
+    });
   }
 }
 
 export class AIError extends AppError {
-  readonly code = "AI_ERROR";
-  readonly userMessage = "The AI service encountered an error.";
-
   constructor(message: string, options?: ErrorOptions) {
-    super(message, options);
+    super(message, {
+      ...options,
+      code: "AI_ERROR",
+      userMessage: "The AI service encountered an error.",
+    });
   }
 }
 
 export class AIUnavailableError extends AIError {
-  readonly code = "AI_UNAVAILABLE";
-  readonly userMessage = "AI features are not available in this browser.";
-
   constructor(message = "AI API not available") {
     super(message);
+    Object.defineProperty(this, "code", { value: "AI_UNAVAILABLE" });
+    Object.defineProperty(this, "userMessage", {
+      value: "AI features are not available in this browser.",
+    });
   }
 }
 
 export class AISessionError extends AIError {
-  readonly code = "AI_SESSION_ERROR";
-  readonly userMessage = "Could not create an AI session.";
-
   constructor(message = "Session creation failed") {
     super(message);
+    Object.defineProperty(this, "code", { value: "AI_SESSION_ERROR" });
+    Object.defineProperty(this, "userMessage", {
+      value: "Could not create an AI session.",
+    });
   }
 }
 
 export class AIContextOverflowError extends AIError {
-  readonly code = "AI_CONTEXT_OVERFLOW";
-  readonly userMessage =
-    "The context window is full. Some conversation history will be compacted.";
-
   constructor(message = "Context window exceeded") {
     super(message);
+    Object.defineProperty(this, "code", { value: "AI_CONTEXT_OVERFLOW" });
+    Object.defineProperty(this, "userMessage", {
+      value:
+        "The context window is full. Some conversation history will be compacted.",
+    });
   }
 }
 
 export class ExportError extends AppError {
-  readonly code = "EXPORT_ERROR";
-  readonly userMessage = "The export could not be completed.";
-
   constructor(message: string) {
-    super(message);
+    super(message, {
+      code: "EXPORT_ERROR",
+      userMessage: "The export could not be completed.",
+    });
   }
 }
 
 export class ImportError extends AppError {
-  readonly code = "IMPORT_ERROR";
-  readonly userMessage = "The import file is invalid or corrupted.";
-
   constructor(message: string) {
-    super(message);
+    super(message, {
+      code: "IMPORT_ERROR",
+      userMessage: "The import file is invalid or corrupted.",
+    });
   }
 }
 
 export class WorkerError extends AppError {
-  readonly code = "WORKER_ERROR";
-  readonly userMessage = "A background task failed.";
-
   constructor(message: string, options?: ErrorOptions) {
-    super(message, options);
+    super(message, {
+      ...options,
+      code: "WORKER_ERROR",
+      userMessage: "A background task failed.",
+    });
   }
 }
 
 export class StorageQuotaError extends DatabaseError {
-  readonly code = "STORAGE_QUOTA";
-  readonly userMessage = "Storage is full. Please export and delete old data.";
-
   constructor(message = "Storage quota exceeded") {
     super(message);
+    Object.defineProperty(this, "code", { value: "STORAGE_QUOTA" });
+    Object.defineProperty(this, "userMessage", {
+      value: "Storage is full. Please export and delete old data.",
+    });
   }
 }
 

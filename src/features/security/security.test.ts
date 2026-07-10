@@ -4,12 +4,15 @@ import {
   validateContent,
   validateFileSize,
   validateNoteContent,
+  validateConceptName,
+  validateDescription,
   sanitizeContentForImport,
 } from "./content-validator";
 import {
   logDiagnostic,
   getDiagnostics,
   clearDiagnostics,
+  getDiagnosticsByCategory,
   getErrorSummary,
 } from "./diagnostics";
 import {
@@ -17,7 +20,13 @@ import {
   getErrors,
   clearErrors,
   getRecoverableErrors,
+  getErrorsByType,
 } from "./error-center";
+import {
+  getThreatsBySeverity,
+  getThreatsByStatus,
+  getThreatSummary,
+} from "./threat-model";
 
 describe("csp", () => {
   it("generates CSP header", () => {
@@ -120,5 +129,62 @@ describe("error-center", () => {
     reportError("test", "msg");
     clearErrors();
     expect(getErrors()).toHaveLength(0);
+  });
+
+  it("filters errors by type", () => {
+    reportError("parse", "Error 1");
+    reportError("db", "Error 2");
+    const parseErrors = getErrorsByType("parse");
+    expect(parseErrors.length).toBe(1);
+  });
+});
+
+describe("threat-model", () => {
+  it("has defined threats", () => {
+    const summary = getThreatSummary();
+    expect(summary.total).toBeGreaterThan(0);
+  });
+
+  it("groups threats by severity", () => {
+    const critical = getThreatsBySeverity("critical");
+    expect(critical.length).toBeGreaterThan(0);
+    critical.forEach((t) => {
+      expect(t.severity).toBe("critical");
+    });
+  });
+
+  it("groups threats by status", () => {
+    const mitigated = getThreatsByStatus("mitigated");
+    expect(mitigated.length).toBeGreaterThan(0);
+  });
+});
+
+describe("content-validator additional", () => {
+  it("validates concept name length", () => {
+    expect(validateConceptName("Short name").valid).toBe(true);
+    expect(validateConceptName("x".repeat(600)).valid).toBe(false);
+  });
+
+  it("validates description length", () => {
+    expect(validateDescription("Short desc").valid).toBe(true);
+    expect(validateDescription("x".repeat(20_000)).valid).toBe(false);
+  });
+
+  it("detects event handler injection", () => {
+    const result = validateContent('<div onclick="evil()">test</div>');
+    expect(result.valid).toBe(false);
+  });
+});
+
+describe("diagnostics additional", () => {
+  beforeEach(() => {
+    clearDiagnostics();
+  });
+
+  it("filters diagnostics by category", () => {
+    logDiagnostic("info", "auth", "Login");
+    logDiagnostic("info", "parser", "Parse");
+    const authEntries = getDiagnosticsByCategory("auth");
+    expect(authEntries.length).toBe(1);
   });
 });

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { validateSnapshot, importSnapshot } from "./import-service";
 import { getDataInventory, deleteWorkspaceData } from "./privacy-service";
+import { sanitizeHTML, sanitizeMarkdown, validateFileSize } from "./sanitizer";
 import type { WorkspaceSnapshot } from "./export-service";
 
 vi.mock("../../db/database", () => ({
@@ -183,5 +184,38 @@ describe("privacy-service", () => {
       deleteNotes: true,
     });
     expect(result.deleted).toBe(0);
+  });
+});
+
+describe("sanitizer", () => {
+  it("removes script tags from HTML", () => {
+    const html = '<p>Hello</p><script>alert("xss")</script>';
+    const result = sanitizeHTML(html);
+    expect(result).not.toContain("<script>");
+    expect(result).toContain("Hello");
+  });
+
+  it("removes event handlers", () => {
+    const html = '<div onclick="alert(1)">Test</div>';
+    const result = sanitizeHTML(html);
+    expect(result).not.toContain("onclick");
+  });
+
+  it("sanitizes markdown", () => {
+    const md = "Hello\n<script>alert(1)</script>\nWorld";
+    const result = sanitizeMarkdown(md);
+    expect(result).not.toContain("<script>");
+    expect(result).toContain("Hello");
+  });
+
+  it("validates file size within limit", () => {
+    const result = validateFileSize(1000, 1);
+    expect(result.valid).toBe(true);
+  });
+
+  it("rejects oversized files", () => {
+    const result = validateFileSize(2 * 1024 * 1024, 1);
+    expect(result.valid).toBe(false);
+    expect(result.error).toContain("exceeds");
   });
 });

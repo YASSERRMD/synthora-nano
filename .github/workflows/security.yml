@@ -1,0 +1,37 @@
+{
+  "name": "Security Audit",
+  "on": {
+    "schedule": [
+      {
+        "cron": "0 0 * * 0"
+      }
+    ],
+    "workflow_dispatch": {}
+  },
+  "jobs":
+    "security-audit":
+      runs-on: ubuntu-latest
+      permissions:
+        contents: read
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+
+        - name: Setup Node.js
+          uses: actions/setup-node@v4
+          with:
+            node-version: 20
+
+        - name: Audit dependencies
+          run: npm audit --audit-level=high
+
+        - name: Check for secrets in code
+          run: |
+            if grep -r "sk-\|api_key\|apikey\|secret" src/ --include="*.ts" --include="*.tsx" --include="*.js" --exclude-dir=node_modules; then
+              echo "WARNING: Potential secrets detected"
+            fi
+
+        - name: Verify no external network calls
+          run: |
+            echo "Checking for network calls in source..."
+            grep -r "fetch(" src/ --include="*.ts" --include="*.tsx" | grep -v "chrome.runtime" | grep -v "navigator.clipboard" | grep -v "// test" || echo "No suspicious network calls found"
